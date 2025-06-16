@@ -30,7 +30,7 @@ func (rag *RagHandler) RagRequest(ctx fiber.Ctx) error {
 	// Call the RAG service with the user input
 	retrieverReq, _ := json.Marshal(map[string]string{"user_input": input.UserInput})
 	log.Print("Sending request to retriever service with input: ", input.UserInput)
-	retrieverResp, err := http.Post("http://python-be:8000/retrieve", "application/json", bytes.NewBuffer(retrieverReq))
+	retrieverResp, err := http.Post(constant.RetrieveApi, "application/json", bytes.NewBuffer(retrieverReq))
 	if err != nil {
 		return err
 	}
