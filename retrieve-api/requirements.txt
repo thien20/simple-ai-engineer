@@ -1,0 +1,6 @@
+fastapi==0.110.2
+uvicorn==0.29.0
+sentence-transformers==4.1.0
+pydantic==2.7.1
+elasticsearch==8.13.0i
+# numpy<2
