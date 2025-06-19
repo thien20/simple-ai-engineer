@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from schemas import RAGRequest, RAGResponse
-from constant.const import SystemPrompt, RetrieveApi
+from constant.const import SystemPrompt, RetrieveApi, OllamaApi
 import requests
 
 class RagHandler:
@@ -15,11 +15,11 @@ class RagHandler:
             retriever_resp.raise_for_status()
             context = retriever_resp.json().get("context", "")
 
-            prompt = f"{SystemPrompt}: {context}\n\nQuestion: {request.userInput}\nAnswer:"
+            prompt = f"{SystemPrompt}: {context[:2000]}\n\nQuestion: {request.userInput}\nAnswer:"
             ollama_resp = requests.post(
-                "http://ollama:11434/api/generate",
+                OllamaApi,
                 json={
-                    "model": "gemma",
+                    "model": "gemma:2b-instruct-q4_0",
                     "prompt": prompt,
                     "stream": False
                 }
@@ -27,7 +27,7 @@ class RagHandler:
             ollama_resp.raise_for_status()
             answer = ollama_resp.json().get("response", "")
 
-            return RAGResponse(answer=answer, status=200)
+            return RAGResponse(result=answer, status=200)
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
