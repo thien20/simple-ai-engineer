@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-be/handler"
+	"go-be/internal/handler"
 
 	"github.com/gofiber/fiber/v3"
 )

@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go-be/constant"
-	"go-be/requests"
-	"go-be/response"
+
+	"go-be/internal/constant"
+	"go-be/internal/requests"
+	"go-be/internal/response"
+	"go-be/internal/service"
 	"go-be/utils"
 	"log"
 	"net/http"
@@ -15,6 +17,7 @@ import (
 )
 
 type RagHandler struct {
+	ragSvc *service.RagService
 }
 
 func NewRagHandler() *RagHandler {
@@ -26,24 +29,27 @@ func (rag *RagHandler) RagRequest(ctx fiber.Ctx) error {
 	if err := utils.BodyParser(ctx, &input); err != nil {
 		return err
 	}
-
-	retrieverReq, err := json.Marshal(input)
-	if err != nil {
-		log.Print("Error marshalling retriever request: ", err)
-	}
-	log.Print("Sending request to retriever service with input: ", retrieverReq)
-	retrieverResp, err := http.Post(constant.RetrieveApi, "application/json", bytes.NewBuffer(retrieverReq))
+	ragResp, err := rag.ragSvc.GetDocuments(input)
 	if err != nil {
 		return err
 	}
-	defer retrieverResp.Body.Close()
+	// retrieverReq, err := json.Marshal(input)
+	// if err != nil {
+	// 	log.Print("Error marshalling retriever request: ", err)
+	// }
+	// log.Print("Sending request to retriever service with input: ", retrieverReq)
+	// retrieverResp, err := http.Post(constant.RetrieveApi, "application/json", bytes.NewBuffer(retrieverReq))
+	// if err != nil {
+	// 	return err
+	// }
+	// defer retrieverResp.Body.Close()
 
-	var retrieverResponse response.RetrieverResponse
-	if err := json.NewDecoder(retrieverResp.Body).Decode(&retrieverResponse); err != nil {
-		return err
-	}
+	// var retrieverResponse response.RetrieverResponse
+	// if err := json.NewDecoder(retrieverResp.Body).Decode(&retrieverResponse); err != nil {
+	// 	return err
+	// }
 
-	prompt := fmt.Sprintf("%s: %s\n\n User Query: %s\nAnswer:", constant.SystemPrompt, retrieverResponse.Documents, input.UserInput)
+	prompt := fmt.Sprintf("%s: %s\n\n User Query: %s\nAnswer:", constant.SystemPrompt, ragResp, input.UserInput)
 	ollamaReq := requests.OllamaRequest{
 		Model:  "gemma:2b-instruct-q4_0",
 		Prompt: prompt,
