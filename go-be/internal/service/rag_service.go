@@ -1,35 +1,38 @@
 package service
 
 import (
-	"bytes"
-	"encoding/json"
+	"go-be/internal/builder"
 	"go-be/internal/constant"
 	"go-be/internal/infra"
 	"go-be/internal/requests"
 	"go-be/internal/response"
-	"net/http"
 )
 
 type RagService struct {
 	RetrieverClient infra.RetrieverClient
 	LLMClient       infra.LLMClient
+	PromptBuilder   builder.PromptBuilder
 }
 
-func (s *RagService) GetDocuments(input requests.RagRequest) ([]string, error) {
-	retrieverReq, err := json.Marshal(input)
-	if err != nil {
-		return nil, err
+func NewRagService() *RagService {
+	return &RagService{
+		RetrieverClient: infra.NewRetrieverClient(),
+		LLMClient:       infra.NewLLMClient(),
+		PromptBuilder:   &builder.DefaultSystemPrompt{},
 	}
-	retrieverResp, err := http.Post(constant.RetrieveApi, "application/json", bytes.NewBuffer(retrieverReq))
-	if err != nil {
-		return nil, err
-	}
-	defer retrieverResp.Body.Close()
+}
 
-	var retrieverResponse response.RetrieverResponse
-	if err := json.NewDecoder(retrieverResp.Body).Decode(&retrieverResponse); err != nil {
-		return nil, err
+func (s *RagService) GenerateAns(input requests.RagRequest) (response.OllamaResponse, error) {
+	documents, err := s.RetrieverClient.GetDocuments(input)
+	if err != nil {
+		return response.OllamaResponse{}, err
 	}
 
-	return retrieverResponse.Documents, nil
+	if len(documents) == 0 {
+		return response.OllamaResponse{}, nil
+	}
+
+	prompt := s.PromptBuilder.BuildPrompt(constant.SystemPrompt, documents[0], input.UserInput)
+
+	return s.LLMClient.GetAnswer(prompt)
 }

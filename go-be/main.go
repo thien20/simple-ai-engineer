@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-be/internal/handler"
+	"go-be/internal/service"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -9,7 +10,8 @@ import (
 func main() {
 	app := fiber.New()
 
-	ragHandler := handler.NewRagHandler()
+	ragSvc := service.NewRagService()
+	ragHandler := handler.NewRagHandler(ragSvc)
 	app.Post("/rag", ragHandler.RagRequest)
 	app.Listen(":8000")
 }
