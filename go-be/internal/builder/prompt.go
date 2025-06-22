@@ -11,6 +11,10 @@ type PromptBuilder interface {
 type DefaultSystemPrompt struct {
 }
 
+func NewDefaultSystemPrompt() *DefaultSystemPrompt {
+	return &DefaultSystemPrompt{}
+}
+
 func (d *DefaultSystemPrompt) BuildPrompt(systemPrompt, context, userInput string) string {
 	return fmt.Sprintf("User Query: %s, %s: %s\n\nAnswer:", userInput, systemPrompt, context)
 }
