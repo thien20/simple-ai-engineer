@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gemma-2b-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gemma-2b-vllm
+  template:
+    metadata:
+      labels:
+        app: gemma-2b-vllm
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-accelerator: "nvidia-l4"
+      containers:
+      - name: vllm-container
+        # This image path will be dynamically replaced by the script.
+        image: IMAGE_PLACEHOLDER
+        # The arguments passed to the vLLM server entrypoint.
+        # The model ID will be dynamically replaced by the script.
+        args: [
+            "--model", "HF_MODEL_ID_PLACEHOLDER",
+            "--tensor-parallel-size", "1",
+            "--host", "0.0.0.0",
+            "--port", "8000"
+        ]
+        ports:
+        - containerPort: 8000
+        env:
+        - name: HUGGING_FACE_HUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              # The name of the Kubernetes secret holding the HF token.
+              name: hf-secret
+              key: token
+        # Resource requests are crucial for Autopilot. They determine billing and scheduling.
+        resources:
+          requests:
+            cpu: "2"           # Request 2 vCPU cores
+            memory: "8Gi"      # Request 8 GB of RAM
+            ephemeral-storage: "10Gi" 
+          limits:
+            # This requests exactly 1 GPU from the node pool.
+            nvidia.com/gpu: 1

@@ -1,0 +1,23 @@
+# This file defines the steps for Google Cloud Build to execute.
+steps:
+  # Step 1: Build the Docker image
+  # 'gcr.io/cloud-builders/docker' is a pre-made builder provided by Google.
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_FULL_IMAGE_NAME}' # This is a substitution variable we will pass in.
+      - '.' # Build from the current directory.
+
+  # Step 2: Push the built image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_FULL_IMAGE_NAME}'
+
+# This section specifies which images to make available after the build is successful.
+images:
+  - '${_FULL_IMAGE_NAME}'
+
+# You can increase the timeout if your build is complex. 3600s = 1 hour.
+timeout: 3000s

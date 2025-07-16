@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pydantic
+vllm==0.4.0
+transformers
